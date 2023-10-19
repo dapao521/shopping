@@ -3,6 +3,7 @@ import { useMemberStore } from '@/stores'
 const baseurl = 'https://pcapi-xiaotuxian-front-devtest.itheima.net'
 const httpInterceptor = {
   invoke(options) {
+    options.method = options.method || 'GET'
     if (!options.url.startsWith('http')) {
       options.url = baseurl + options.url
     }
