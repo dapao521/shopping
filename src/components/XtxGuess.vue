@@ -15,6 +15,7 @@ const resetData = () => {
   likeList.value = []
   kaiguan.value = false
 }
+
 const kaiguan = ref(false)
 const getLikeList = async () => {
   if (kaiguan.value) {
@@ -52,7 +53,7 @@ defineExpose({
       class="guess-item"
       v-for="item in likeList"
       :key="item.id"
-      :url="`/pages/goods/goods?id=4007498`"
+      :url="`/pages/goods/goods?id=${item.id}`"
     >
       <image class="image" mode="aspectFill" :src="item.picture"></image>
       <view class="name"> {{ item.name }} </view>
