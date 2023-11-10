@@ -1,4 +1,5 @@
 <script setup>
+//获取屏幕边界到安全区的距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 </script>
 

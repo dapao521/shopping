@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps } from 'vue'
+import { ref } from 'vue'
 
 const activeIndex = ref(0)
 const swiperChange = (e) => {

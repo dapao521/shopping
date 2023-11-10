@@ -1,8 +1,8 @@
 {
 	"easycom": {
-    //是否开启自动扫描
+		//是否开启自动扫描
 		"autoscan": true,
-    //设置自定义组件匹配规则
+		//设置自定义组件匹配规则
 		"custom": {
 			// uni-ui 规则如下配置
 			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
@@ -57,6 +57,12 @@
 			"path": "pages/goods/goods",
 			"style": {
 				"navigationBarTitleText": "商品详情"
+			}
+		},
+		{
+			"path": "pages/cart/cart2",
+			"style": {
+				"navigationBarTitleText": "购物车"
 			}
 		}
 	],
@@ -123,15 +129,45 @@
 					"style": {
 						"navigationBarTitleText": "我的地址"
 					}
-				},		{
+				},
+				{
 					"path": "address-form/address-form",
 					"style": {
 						"navigationBarTitleText": "地址表单"
 					}
 				}
 			]
+		},
+		{
+			"root": "pagesOrder",
+			"pages": [
+				{
+					"path": "create/create",
+					"style": {
+						"navigationBarTitleText": "订单"
+					}
+				},
+				{
+					"path": "detail/detail",
+					"style": {
+						"navigationBarTitleText": "订单详情",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "payment/payment",
+					"style": {
+						"navigationBarTitleText": "支付结果"
+					}
+				},
+        {
+					"path": "List/List",
+					"style": {
+						"navigationBarTitleText": "订单列表页"
+					}
+				}
+			]
 		}
-
 	],
 	//分包预加载： 进入小程序某个页面的时候 ， 由框架自动预下载，提升后续分包进入页面的速度
 	"preloadRule": {

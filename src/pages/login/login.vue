@@ -39,7 +39,7 @@ const setToken = (result) => {
     title: '模拟登陆成功',
   })
   setTimeout(() => {
-    uni.switchTab({
+    uni.navigateBack({
       url: '/pages/my/my',
     })
   }, 1000)

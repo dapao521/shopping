@@ -7,7 +7,7 @@ const httpInterceptor = {
     if (!options.url.startsWith('http')) {
       options.url = baseurl + options.url
     }
-    options.timeout = 5000
+    options.timeout = 10000
 
     options.header = {
       ...options.header,

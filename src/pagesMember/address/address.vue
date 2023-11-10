@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getmemberaddressapi, deletememberaddressapi } from '@/services/address'
+import { useadressstore } from '@/stores/modules/address'
 
 // 获取数据
 const adress = ref()
@@ -29,6 +30,14 @@ const deleteAddress = (id) => {
     },
   })
 }
+
+//点击返回上一页
+const back = (item) => {
+  //把选中的项存储到store  在回到上个页面跳用store
+  const addressstore = useadressstore()
+  addressstore.setaddress(item)
+  uni.navigateBack()
+}
 </script>
 
 <template>
@@ -39,7 +48,7 @@ const deleteAddress = (id) => {
         <uni-swipe-action class="address-list">
           <!-- 收货地址项 -->
           <uni-swipe-action-item class="item" v-for="item in adress" :key="item.id">
-            <view class="item-content">
+            <view class="item-content" @tap="back(item)">
               <view class="user">
                 {{ item.receiver }}
                 <text class="contact">{{ item.contact }}</text>
@@ -50,6 +59,7 @@ const deleteAddress = (id) => {
                 class="edit"
                 hover-class="none"
                 :url="`/pagesMember/address-form/address-form?id=${item.id}`"
+                @tap.stop="() => {}"
               >
                 修改
               </navigator>

@@ -4,6 +4,10 @@ import { onLoad } from '@dcloudio/uni-app'
 import { goodsapi } from '@/services/shangpingxiangqing.js'
 import DizhiZujian from '@/pages/goods/components/DizhiZujian.vue'
 import FuwuZujian from './components/FuwuZujian.vue'
+import { computed } from 'vue'
+import { postcartapi } from '@/services/cart.js'
+import { getmemberaddressapi } from '@/services/address.js'
+import { useadressstore } from '@/stores/modules/address'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -18,7 +22,7 @@ const query = defineProps({
 const goodslist = ref()
 const getgoodslist = async () => {
   const { result } = await goodsapi(query.id)
-  console.log(result)
+  // console.log(result)
   goodslist.value = result
 
   //sku组件所需的格式
@@ -26,29 +30,43 @@ const getgoodslist = async () => {
     _id: result.id,
     name: result.name,
     goods_thumb: result.mainPictures[0],
-    spec_list: result.specs.map((item) => {
-      return {
-        name: item.name,
-        list: item.values,
-      }
-    }),
-    sku_list: result.skus.map((item) => {
-      return {
-        _id: item.id,
-        goods_id: result.id,
-        goods_name: result.name,
-        image: item.picture,
-        price: item.price,
-        stock: item.inventory,
-        sku_name_arr: item.specs.map((itemtoo) => {
-          itemtoo.valueName
-        }),
-      }
-    }),
+    spec_list: result.specs.map((item) => ({
+      name: item.name,
+      list: item.values,
+    })),
+    sku_list: result.skus.map((item) => ({
+      _id: item.id,
+      goods_id: result.id,
+      goods_name: result.name,
+      image: item.picture,
+      price: item.price * 100,
+      stock: item.inventory,
+      sku_name_arr: item.specs.map((itemtoo) => itemtoo.valueName),
+    })),
   }
 }
 
+//老师写的
+// SKU组件所需格式
+//   localdata.value = {
+//     _id: res.result.id,
+//     name: res.result.name,
+//     goods_thumb: res.result.mainPictures[0],
+//     spec_list: res.result.specs.map((v) => ({ name: v.name, list: v.values })),
+//     sku_list: res.result.skus.map((v) => ({
+//       _id: v.id,
+//       goods_id: res.result.id,
+//       goods_name: res.result.name,
+//       image: v.picture,
+//       price: v.price * 100, // 注意：需要乘以 100
+//       stock: v.inventory,
+//       sku_name_arr: v.specs.map((vv) => vv.valueName),
+//     })),
+//   }
+// }
+
 //轮播图切换
+
 const lunboxiabiao = ref(0)
 const onchange = (e) => {
   // console.log(e.detail.current)
@@ -83,24 +101,63 @@ onLoad(() => {
   getgoodslist()
 })
 
-// sku弹框
+// sku弹框   他妈的找了老子半天的错误  总结以下几点
+// 原本的sku两个组件  也就是compononts 里面的   不要保存修改   B事特别多
 //获取sku弹框
 const skuPopup = ref()
+//sku模式
+const skuMode = ref()
 //是否显示sku
 const skuKey = ref(false)
 //商品信息 和 后段的goodslist格式不同
 const localdata = ref()
 //打开sku弹框
-const onOpenSkuPopup = () => {
+const onOpenSkuPopup = (a) => {
+  //开启sku
   skuKey.value = true
-  console.log(123)
+  //修改mode
+  skuMode.value = a
 }
-//关闭sku弹框
-const SkuPopup = () => {}
+
 //加入购物车
-const addCart = () => {}
+const addCart = async (e) => {
+  // console.log(e)
+  await postcartapi({ skuId: e._id, count: e.buy_num })
+  uni.showToast({
+    title: '添加成功',
+  })
+  skuKey.value = false
+}
 //立即购买
-const buyNow = () => {}
+const buyNow = (e) => {
+  // console.log(e)
+  uni.navigateTo({ url: `/pagesOrder/create/create?skuId=${e._id}&count=${e.buy_num}` })
+}
+//计算被选中的值
+const arrtext = computed(() => {
+  // console.log(skuPopup.value)
+  return skuPopup.value?.selectArr.join(' ').trim() || '请你吃屎'
+})
+
+//获取收获地址列表
+const address = ref()
+const getaddress = async () => {
+  const { result } = await getmemberaddressapi()
+  // console.log(result)
+  address.value = result
+}
+onLoad(() => {
+  getaddress()
+})
+
+//每次关闭重新赋值
+const adressstore = useadressstore()
+let dizhi = ref()
+dizhi.value = adressstore?.address.fullLocation + adressstore?.address.address
+const closeq = () => {
+  popup.value.close()
+  dizhi.value = adressstore?.address.fullLocation + adressstore?.address.address
+}
 </script>
 
 <template>
@@ -109,7 +166,17 @@ const buyNow = () => {}
     ref="skuPopup"
     v-model="skuKey"
     border-radius="20"
+    add-cart-background-color="#ffa868"
+    buy-now-background-color="#27ba98"
+    :actived-style="{
+      color: '#27BA9B',
+      borderColor: '#27BA9B',
+      backgroundColor: '#E9F8F5',
+    }"
     :localdata="localdata"
+    :mode="skuMode"
+    @add-cart="addCart"
+    @buy-now="buyNow"
   ></vk-data-goods-sku-popup>
 
   <scroll-view scroll-y class="viewport">
@@ -141,13 +208,15 @@ const buyNow = () => {}
 
       <!-- 操作面板 -->
       <view class="action">
-        <view class="item arrow" @tap="onOpenSkuPopup">
+        <view class="item arrow" @tap="onOpenSkuPopup(1)">
           <text class="label">选择</text>
-          <text class="text ellipsis"> 请选择商品规格 </text>
+          <text class="text ellipsis"> {{ arrtext }} </text>
         </view>
         <view class="item arrow">
           <text class="label">送至</text>
-          <text class="text ellipsis" @tap="onopen('dizhi')"> 请选择收获地址 </text>
+          <text class="text ellipsis" @tap="onopen('dizhi')">
+            {{ adressstore.address ? dizhi : '请选择收货地址' }}
+          </text>
         </view>
         <view class="item arrow">
           <text class="label">服务</text>
@@ -210,20 +279,20 @@ const buyNow = () => {}
       <button class="icons-button" open-type="contact">
         <text class="icon-handset"></text>客服
       </button>
-      <navigator class="icons-button" url="/pages/cart/cart" open-type="switchTab">
+      <navigator class="icons-button" url="/pages/cart/cart2" open-type="navigate">
         <text class="icon-cart"></text>购物车
       </navigator>
     </view>
     <view class="buttons">
-      <view class="addcart"> 加入购物车 </view>
-      <view class="buynow"> 立即购买 </view>
+      <view class="addcart" @tap="onOpenSkuPopup(2)"> 加入购物车 </view>
+      <view class="buynow" @tap="onOpenSkuPopup(3)"> 立即购买 </view>
     </view>
   </view>
 
   <!-- uni 弹出层 -->
   <uni-popup ref="popup" type="bottom" background-color="#fff">
-    <DizhiZujian v-if="popupname === 'dizhi'" @close="popup.close()"></DizhiZujian>
-    <FuwuZujian v-if="popupname === 'fuwu'" @close="popup.close()"></FuwuZujian>
+    <DizhiZujian v-if="popupname === 'dizhi'" @close="closeq" :address="address"></DizhiZujian>
+    <FuwuZujian v-if="popupname === 'fuwu'" @close="closeq"></FuwuZujian>
   </uni-popup>
 </template>
 

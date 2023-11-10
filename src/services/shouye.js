@@ -28,7 +28,6 @@ export const hotapi = () => {
 export const likeapi = (data) => {
   return https({
     url: '/home/goods/guessLike',
-
     data,
   })
 }
